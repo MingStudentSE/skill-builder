@@ -26,15 +26,19 @@
 
 ## 安装
 
-本仓库根目录就是 skill 本体。将整个仓库目录复制到你的 Codex skills 目录，或按你当前 Agent 环境的 skills 安装方式导入。
+本仓库根目录就是 skill 本体。直接把仓库 clone 到你的 skills 目录即可。
 
-示例命令形态：
+Codex 默认安装示例：
 
 ```bash
-cp -R . {skills_directory}/skill-builder
+git clone https://github.com/MingStudentSE/skill-builder.git ~/.codex/skills/skill-builder
 ```
 
-其中 `{skills_directory}` 替换成你自己的 skills 目录。
+如果你的 Agent 环境使用其他 skills 目录，把目标路径替换成对应目录：
+
+```bash
+git clone https://github.com/MingStudentSE/skill-builder.git {skills_directory}/skill-builder
+```
 
 ## 重要说明
 
