@@ -28,7 +28,13 @@
 
 本仓库根目录就是 skill 本体。直接把仓库 clone 到你的 skills 目录即可。
 
-Codex 默认安装示例：
+Claude Code 常见安装路径：
+
+```bash
+git clone https://github.com/MingStudentSE/skill-builder.git ~/.claude/skills/skill-builder
+```
+
+Codex 默认安装路径：
 
 ```bash
 git clone https://github.com/MingStudentSE/skill-builder.git ~/.codex/skills/skill-builder
