@@ -14,8 +14,9 @@
 ## 目录结构
 
 ```text
-skill-builder/
+./
 ├── SKILL.md
+├── README.md
 └── references/
     ├── official-skill-creator-bridge.md
     ├── skill-builder-standards.md
@@ -25,12 +26,12 @@ skill-builder/
 
 ## 安装
 
-把 `skill-builder/` 目录复制到你的 Codex skills 目录，或按你当前 Agent 环境的 skills 安装方式导入。
+本仓库根目录就是 skill 本体。将整个仓库目录复制到你的 Codex skills 目录，或按你当前 Agent 环境的 skills 安装方式导入。
 
 示例命令形态：
 
 ```bash
-cp -R skill-builder {skills_directory}/skill-builder
+cp -R . {skills_directory}/skill-builder
 ```
 
 其中 `{skills_directory}` 替换成你自己的 skills 目录。
@@ -52,4 +53,4 @@ https://github.com/anthropics/skills/tree/main/skills/skill-creator
 - The Complete Guide to Building Skills for Claude 的中文校订版
 - Anthropic 官方 `skill-creator` 工作流
 
-完整参考内容放在 `skill-builder/references/source-books/`，默认使用提炼后的标准文件，需要追溯依据或查原始例子时再读取全文。
+完整参考内容放在 `references/source-books/`，默认使用提炼后的标准文件，需要追溯依据或查原始例子时再读取全文。
