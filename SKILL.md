@@ -35,15 +35,14 @@ description: 用于设计、创建、审查、改进和打包 Claude/Codex Agent
 
 ### 3. 配合官方 skill-creator
 
-按 bridge 建立脚本能力矩阵，逐个探测：
+按 bridge 建立官方脚本能力矩阵，只把官方仓库当前提供的脚本视为官方能力：
 
 ```text
-init      -> scripts/init_skill.py，如存在
 validate  -> scripts/quick_validate.py
 package   -> scripts/package_skill.py
 ```
 
-不要假设三个脚本同目录。新建 skill 时，有 `init_skill.py` 就用实际路径初始化；没有则手动创建最小 `SKILL.md`。已有 skill 跳过初始化。
+官方当前没有 `init_skill.py`。新建 skill 时手动创建最小 `SKILL.md` 结构；若使用系统内置初始化脚本，必须标注为非官方兼容补位。已有 skill 跳过初始化。
 
 ### 4. 编写或改进
 

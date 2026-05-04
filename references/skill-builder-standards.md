@@ -214,7 +214,7 @@ description: 帮助处理 skills。
 1. 澄清具体例子。
 2. 规划可复用内容。
 3. 检查 Anthropic 官方 `skill-creator` 是否已安装；如果没有，先从官方仓库安装。
-4. 用官方 `skill-creator` 初始化。
+4. 手动创建最小 skill 结构；官方当前没有 `init_skill.py`。
 5. 编辑 `SKILL.md` 和配套资源。
 6. 校验结构和触发质量。
 7. 用正例和反例测试。
@@ -240,7 +240,7 @@ https://github.com/anthropics/skills/tree/main/skills/skill-creator
 2. `skill-builder` 判断设计模式和是否需要拆分。
 3. `skill-builder` 形成构建/优化简报。
 4. `skill-builder` 建立官方 creator 脚本能力矩阵。
-5. 官方 creator 初始化新 skill；若无初始化脚本，手动创建最小结构。
+5. 新建 skill 时手动创建最小结构；官方 creator 不提供 `init_skill.py`。
 6. `skill-builder` 编写或改进 `SKILL.md`、`references/`、`scripts/`、`assets/`。
 7. 官方 creator 执行 `quick_validate.py`。
 8. `skill-builder` 根据错误和质量门修复。

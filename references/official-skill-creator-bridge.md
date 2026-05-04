@@ -15,35 +15,33 @@
 
 如果无法定位 Anthropic 官方 `skill-creator`，不要直接用相似流程替代。先按“缺失时安装”从官方仓库下载安装到当前 skills 目录；只有在无法联网、无法确定安装目录或用户拒绝安装时，才说明阻塞点，并请求用户提供官方 `skill-creator` 文件夹或安装位置。
 
-## 脚本能力探测（不要假设同目录）
+## 脚本能力探测
 
-官方 `skill-creator` 的脚本集会随版本与运行环境变化；本地环境也可能同时存在多个 `skill-creator` 变体。不要假设 `init_skill.py`、`quick_validate.py`、`package_skill.py` 一定位于同一个目录，也不要把某个目录缺少单个脚本误判为整个 creator 不可用。
+Anthropic 官方 `skill-creator` 当前只把以下脚本视为官方能力：
 
-在创建、校验或打包前，逐个探测所需脚本：
+```text
+validate  -> scripts/quick_validate.py
+package   -> scripts/package_skill.py
+```
 
-1. 收集候选 creator 根目录：
-   - 当前环境已加载或可发现的 `skill-creator` skill 目录。
-   - 当前产品或系统内置的 `.system/skill-creator` 目录。
-   - 用户显式提供的官方 `skill-creator` 目录。
-   - 从官方仓库临时下载或安装得到的目录。
-2. 对每个需要的能力分别寻找脚本，而不是只选一个 `{skill_creator_dir}`：
-   - 初始化：查找 `scripts/init_skill.py`。
-   - 快速校验：查找 `scripts/quick_validate.py`。
-   - 打包：查找 `scripts/package_skill.py`。
-3. 为本次任务建立“脚本能力矩阵”，记录每个能力使用的具体脚本路径与来源。
-4. 优先使用 Anthropic 官方仓库当前版本中存在的脚本；如果官方当前版本缺少某项能力，但系统内置 creator 提供该脚本，可以把系统内置脚本作为兼容补位，并在汇报中说明。
-5. 只要某个任务需要的脚本存在，即可继续该任务；不要因为其它非必需脚本缺失而阻塞。
-6. 如果多个候选目录都提供同一脚本，优先级为：用户明确指定目录 > 当前已加载的官方 skill > 官方仓库当前版本 > 系统内置兼容目录。若来源不确定，先说明判断依据。
+官方当前没有 `scripts/init_skill.py`。不要在本 skill 中把 `init_skill.py` 写成官方能力，也不要要求官方安装结果包含它。
+
+在校验或打包前建立脚本能力矩阵：
+
+1. 收集候选官方 creator 根目录：当前已加载的官方 skill、工具发现结果、用户提供的位置、或从官方仓库安装得到的目录。
+2. 分别查找官方当前提供的脚本：`scripts/quick_validate.py` 与 `scripts/package_skill.py`。
+3. 记录每个脚本的具体路径和来源。只要本次任务需要的官方脚本存在，即可继续；不要因缺少 `init_skill.py` 阻塞。
+4. 如果本地系统内置 creator 提供 `init_skill.py`，只能把它作为“非官方兼容补位”。使用前说明来源；默认优先手动创建最小 skill 结构。
 
 示例能力矩阵：
 
 ```text
-init      -> /path/to/.system/skill-creator/scripts/init_skill.py        # 兼容补位
-validate  -> /path/to/skill-creator/scripts/quick_validate.py            # 官方当前版本
-package   -> /path/to/skill-creator/scripts/package_skill.py             # 官方当前版本
+validate  -> /path/to/skill-creator/scripts/quick_validate.py  # 官方当前版本
+package   -> /path/to/skill-creator/scripts/package_skill.py   # 官方当前版本
+init      -> manual minimal structure                         # 官方无 init 脚本
 ```
 
-当前已知事实（2026-05-04 核对）：Anthropic 官方 GitHub `skills/skill-creator/scripts/` 下有 `quick_validate.py` 和 `package_skill.py`，没有 `init_skill.py`；某些系统内置 `skill-creator` 可能有 `init_skill.py` 与 `quick_validate.py`，但没有 `package_skill.py`。因此桥接流程必须按脚本逐个探测。
+当前已知事实（2026-05-04 核对）：Anthropic 官方 GitHub `skills/skill-creator/scripts/` 下有 `quick_validate.py` 和 `package_skill.py`，没有 `init_skill.py`。
 
 ## 缺失时安装
 
@@ -82,7 +80,7 @@ skill-creator/scripts/quick_validate.py
 skill-creator/scripts/package_skill.py
 ```
 
-如果官方仓库当前版本没有 `scripts/init_skill.py`，不要判定安装失败。只有在本次任务确实需要初始化新 skill 时，才继续从其它官方/系统内置候选目录寻找 `init_skill.py`，或改用手动创建最小结构并说明原因。
+官方仓库当前版本没有 `scripts/init_skill.py`；这不是安装失败。新建 skill 时默认手动创建最小结构。
 
 6. 如果目标目录已有 `skill-creator`：
    - 先检查它是否来自 Anthropic 官方仓库。
@@ -105,12 +103,10 @@ skill-creator/scripts/package_skill.py
 
 官方 `skill-creator` 负责：
 
-- 标准创建流程。
-- 初始化脚手架。
+- 官方创建与迭代方法。
 - 目录结构要求。
 - 校验规则。
 - 打包流程。
-- 迭代方法。
 
 ## 必须交接的步骤
 
@@ -120,23 +116,15 @@ skill-creator/scripts/package_skill.py
 2. 把用户需求映射到官方步骤：
    - 理解具体使用例子。
    - 规划可复用内容。
-   - 初始化 skill。
+   - 手动创建最小 skill 结构。
    - 编辑 skill。
    - 打包 skill。
    - 迭代改进。
 3. 保留官方要求。只有当用户给出的环境约束让某一步不适用时，才跳过并说明原因。
 
-## 初始化命令形态
+## 新建 skill 结构
 
-初始化是可选能力，必须先在能力矩阵中确认 `init_skill.py` 的实际位置。不要默认它存在于官方仓库当前版本的 `skill-creator/scripts/` 中。
-
-若找到初始化脚本，在目标父目录执行：
-
-```bash
-python3 {init_script_path} {skill_name} --path {output_directory}
-```
-
-若没有找到初始化脚本，但需要创建新 skill，则手动创建最小目录结构：
+官方当前没有初始化脚本。需要创建新 skill 时，手动创建最小目录结构：
 
 ```text
 {skill_name}/SKILL.md
@@ -145,17 +133,9 @@ python3 {init_script_path} {skill_name} --path {output_directory}
 {skill_name}/assets/       # 仅在确有模板或素材时创建
 ```
 
-手动创建后仍必须用能力矩阵中的 `quick_validate.py` 校验。
+手动创建后必须用官方 `quick_validate.py` 校验。只有当最终 skill 确实需要时，才保留 `scripts/`、`references/` 或 `assets/`。
 
-初始化后替换模板内容，并删除无用示例：
-
-```text
-scripts/example.py
-references/api_reference.md
-assets/example_asset.txt
-```
-
-只有当最终 skill 确实需要时，才保留 `scripts/`、`references/` 或 `assets/`。
+若用户明确要求使用系统内置 `init_skill.py`，必须说明它不是官方当前仓库能力，而是兼容补位。
 
 ## 校验命令形态
 
@@ -181,7 +161,7 @@ python3 {package_script_path} {skill_folder} {optional_output_directory}
 
 汇报时包含：
 
-- 使用了脚本能力矩阵中的哪些脚本，以及哪些能力缺失或由兼容脚本补位。
+- 使用了脚本能力矩阵中的哪些官方脚本；若用了非官方兼容补位，明确说明。
 - 修改了哪些文件。
 - 校验结果。
 - 生成的包路径，如果已打包。
