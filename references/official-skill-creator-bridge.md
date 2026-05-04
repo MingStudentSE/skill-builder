@@ -15,6 +15,36 @@
 
 如果无法定位官方 `skill-creator`，先说明阻塞点，再使用用户当前环境中最接近的官方创建流程。
 
+## 脚本能力探测（不要假设同目录）
+
+官方 `skill-creator` 的脚本集会随版本与运行环境变化；本地环境也可能同时存在多个 `skill-creator` 变体。不要假设 `init_skill.py`、`quick_validate.py`、`package_skill.py` 一定位于同一个目录，也不要把某个目录缺少单个脚本误判为整个 creator 不可用。
+
+在创建、校验或打包前，逐个探测所需脚本：
+
+1. 收集候选 creator 根目录：
+   - 当前环境已加载或可发现的 `skill-creator` skill 目录。
+   - 当前产品或系统内置的 `.system/skill-creator` 目录。
+   - 用户显式提供的官方 `skill-creator` 目录。
+   - 从官方仓库临时下载或安装得到的目录。
+2. 对每个需要的能力分别寻找脚本，而不是只选一个 `{skill_creator_dir}`：
+   - 初始化：查找 `scripts/init_skill.py`。
+   - 快速校验：查找 `scripts/quick_validate.py`。
+   - 打包：查找 `scripts/package_skill.py`。
+3. 为本次任务建立“脚本能力矩阵”，记录每个能力使用的具体脚本路径与来源。
+4. 优先使用 Anthropic 官方仓库当前版本中存在的脚本；如果官方当前版本缺少某项能力，但系统内置 creator 提供该脚本，可以把系统内置脚本作为兼容补位，并在汇报中说明。
+5. 只要某个任务需要的脚本存在，即可继续该任务；不要因为其它非必需脚本缺失而阻塞。
+6. 如果多个候选目录都提供同一脚本，优先级为：用户明确指定目录 > 当前已加载的官方 skill > 官方仓库当前版本 > 系统内置兼容目录。若来源不确定，先说明判断依据。
+
+示例能力矩阵：
+
+```text
+init      -> /path/to/.system/skill-creator/scripts/init_skill.py        # 兼容补位
+validate  -> /path/to/skill-creator/scripts/quick_validate.py            # 官方当前版本
+package   -> /path/to/skill-creator/scripts/package_skill.py             # 官方当前版本
+```
+
+当前已知事实（2026-05-04 核对）：Anthropic 官方 GitHub `skills/skill-creator/scripts/` 下有 `quick_validate.py` 和 `package_skill.py`，没有 `init_skill.py`；某些系统内置 `skill-creator` 可能有 `init_skill.py` 与 `quick_validate.py`，但没有 `package_skill.py`。因此桥接流程必须按脚本逐个探测。
+
 ## 缺失时安装
 
 如果当前环境没有 Anthropic 官方 `skill-creator`，先帮助用户安装官方版本，再继续创建 skill。
@@ -44,14 +74,15 @@ git clone --depth 1 https://github.com/anthropics/skills.git {temporary_director
 cp -R {temporary_directory}/anthropics-skills/skills/skill-creator {skills_directory}/skill-creator
 ```
 
-5. 校验安装结果至少包含：
+5. 校验安装结果时不要要求所有脚本同时存在于同一目录；改为建立脚本能力矩阵。至少确认：
 
 ```text
 skill-creator/SKILL.md
-skill-creator/scripts/init_skill.py
 skill-creator/scripts/quick_validate.py
 skill-creator/scripts/package_skill.py
 ```
+
+如果官方仓库当前版本没有 `scripts/init_skill.py`，不要判定安装失败。只有在本次任务确实需要初始化新 skill 时，才继续从其它官方/系统内置候选目录寻找 `init_skill.py`，或改用手动创建最小结构并说明原因。
 
 6. 如果目标目录已有 `skill-creator`：
    - 先检查它是否来自 Anthropic 官方仓库。
@@ -97,11 +128,24 @@ skill-creator/scripts/package_skill.py
 
 ## 初始化命令形态
 
-在目标父目录执行：
+初始化是可选能力，必须先在能力矩阵中确认 `init_skill.py` 的实际位置。不要默认它存在于官方仓库当前版本的 `skill-creator/scripts/` 中。
+
+若找到初始化脚本，在目标父目录执行：
 
 ```bash
-python3 {skill_creator_dir}/scripts/init_skill.py {skill_name} --path {output_directory}
+python3 {init_script_path} {skill_name} --path {output_directory}
 ```
+
+若没有找到初始化脚本，但需要创建新 skill，则手动创建最小目录结构：
+
+```text
+{skill_name}/SKILL.md
+{skill_name}/references/   # 仅在确有长资料时创建
+{skill_name}/scripts/      # 仅在确有确定性脚本时创建
+{skill_name}/assets/       # 仅在确有模板或素材时创建
+```
+
+手动创建后仍必须用能力矩阵中的 `quick_validate.py` 校验。
 
 初始化后替换模板内容，并删除无用示例：
 
@@ -118,7 +162,7 @@ assets/example_asset.txt
 把 skill 目录作为参数传入：
 
 ```bash
-python3 {skill_creator_dir}/scripts/quick_validate.py {skill_directory}
+python3 {quick_validate_script_path} {skill_directory}
 ```
 
 把 warning 当作优化建议，把 error 当作阻塞问题。
@@ -128,7 +172,7 @@ python3 {skill_creator_dir}/scripts/quick_validate.py {skill_directory}
 从任意目录运行：
 
 ```bash
-python3 {skill_creator_dir}/scripts/package_skill.py {skill_folder} {optional_output_directory}
+python3 {package_script_path} {skill_folder} {optional_output_directory}
 ```
 
 除非用户指定其他位置，否则在 skill 附近使用 `dist/` 作为输出目录。
@@ -137,7 +181,7 @@ python3 {skill_creator_dir}/scripts/package_skill.py {skill_folder} {optional_ou
 
 汇报时包含：
 
-- 使用了官方创建器的哪个步骤。
+- 使用了脚本能力矩阵中的哪些脚本，以及哪些能力缺失或由兼容脚本补位。
 - 修改了哪些文件。
 - 校验结果。
 - 生成的包路径，如果已打包。

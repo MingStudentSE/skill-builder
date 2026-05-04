@@ -54,6 +54,7 @@ https://github.com/anthropics/skills/tree/main/skills/skill-creator
 - 不应该触发该 skill 的反例。
 - 采用的设计模式：检查清单型、多方案选择型、流水线型、集成型、多 Agent 协作型、蒸馏型，或明确组合。
 - 渐进式披露计划：哪些内容放在 frontmatter、`SKILL.md`、`references/`、`scripts/`、`assets/`。
+- 正文长度预算：推荐 `SKILL.md` 正文保持在 500-2000 字；超过 2000 字触发压缩/下沉审查，超过 3000 字触发拆分审查。
 - 安全和确认边界，尤其是不可逆操作、外部 API、凭据、删除或覆盖文件。
 - 校验方案和打包目标。
 
@@ -69,13 +70,15 @@ https://github.com/anthropics/skills/tree/main/skills/skill-creator
 
 ### 4. 调用官方 skill-creator
 
-创建新 skill 时，使用当前环境中官方 `skill-creator` 提供的初始化脚本。脚本目录必须通过已安装 skill、工具发现或当前运行环境解析，不要写死用户机器路径。
+创建新 skill 时，先按 `references/official-skill-creator-bridge.md` 建立脚本能力矩阵，逐个探测 `init_skill.py`、`quick_validate.py`、`package_skill.py`。不要假设这些脚本都在同一个官方 `skill-creator` 目录里；官方仓库当前版本可能没有 `init_skill.py`，而系统内置版本可能没有 `package_skill.py`。
 
-命令形态：
+如果能力矩阵中存在初始化脚本，使用实际脚本路径：
 
 ```bash
-python3 {skill_creator_dir}/scripts/init_skill.py {skill_name} --path {output_directory}
+python3 {init_script_path} {skill_name} --path {output_directory}
 ```
+
+如果找不到初始化脚本，但需要创建新 skill，手动创建最小 `SKILL.md` 结构；随后仍用能力矩阵中的 `quick_validate.py` 校验。
 
 如果 skill 已存在，跳过初始化，先阅读现有文件。
 
@@ -108,22 +111,23 @@ python3 {skill_creator_dir}/scripts/init_skill.py {skill_name} --path {output_di
 - 配套资源有明确用途，并从 `SKILL.md` 中被引用。
 - 已考虑触发正例和不触发反例。
 - 长内容已移动到 `references/`，符合渐进式披露。
+- `SKILL.md` 正文短而精：推荐 500-2000 字。超过 2000 字时先压缩细节、删除 AI 已具备的基础常识、把长例子/rubric/背景材料移到 `references/`；超过 3000 字时必须触发拆分审查，优先按独立任务阶段拆成多个 skill。只有强耦合且每次执行都必需的核心流程、标准和偏好才留在正文。
 - 不硬编码 API key、token、secret、私有端点或用户本机路径。
 - 不可逆或对外可见操作必须先确认。
 - skill 能与其他 skill 组合使用，不假设自己是唯一被加载的能力。
 
 ### 7. 校验和打包
 
-需要快速校验时，使用当前环境中官方 `skill-creator` 的校验脚本：
+需要快速校验时，使用脚本能力矩阵中实际找到的校验脚本：
 
 ```bash
-python3 {skill_creator_dir}/scripts/quick_validate.py {skill_directory}
+python3 {quick_validate_script_path} {skill_directory}
 ```
 
-用户要求可分发产物，或任务完成本身意味着交付 zip 时，使用官方打包脚本：
+用户要求可分发产物，或任务完成本身意味着交付 zip 时，使用脚本能力矩阵中实际找到的打包脚本：
 
 ```bash
-python3 {skill_creator_dir}/scripts/package_skill.py {skill_folder} {optional_output_directory}
+python3 {package_script_path} {skill_folder} {optional_output_directory}
 ```
 
 如果校验失败，先修复错误，再重新校验。不要在校验失败时声称 skill 已可用。
