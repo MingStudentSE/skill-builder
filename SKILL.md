@@ -17,7 +17,7 @@ description: 用于设计、创建、审查、改进和打包 Claude/Codex Agent
 - `references/official-skill-creator-bridge.md`：官方 creator 的脚本能力矩阵、校验和打包。
 - `references/source-map.md`、`references/source-books/`：仅追溯依据或更新标准时读取。
 
-创建、重构、校验或打包前，先加载当前环境中的官方 `skill-creator`。不要写死用户本机绝对路径。
+创建、重构、校验或打包前，先加载当前环境中的官方 `skill-creator`；若缺失，按 bridge 从官方仓库安装。不要写死用户本机绝对路径。
 
 ## 工作流
 
