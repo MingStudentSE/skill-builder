@@ -1,144 +1,101 @@
 ---
 name: skill-builder
-description: 用于设计、创建、审查、改进和打包 Claude/Codex Agent Skills。用户想把工作流做成 skill、创建新的 SKILL.md、优化触发描述、审查 skill 结构、整理 references/scripts/assets、打包 skill zip，或构建可复用 Agent 能力时，应使用本 skill。
+description: 用于设计、创建、审查、改进和打包 Claude/Codex Agent Skills。用户想把工作流做成 skill、创建新的 SKILL.md、优化已有 skill、优化触发描述、审查 skill 结构、整理 references/scripts/assets、打包 skill zip，或构建可复用 Agent 能力时，应使用本 skill。
 ---
 
 # Skill 构建器
 
-## 目标
+## 定位
 
-创建高质量 Agent Skills：先做需求澄清、模式选择和质量把关，再调用官方 `skill-creator` 完成脚手架、校验和打包。
+把本 skill 当作 **设计层 / 架构师 / 质量门**；把官方 `skill-creator` 当作 **工具链 / 校验器 / 打包器 / 评测器**。不要复制官方创建器能力，也不要把设计判断交给创建器。
 
-把本 skill 当作“设计层”和“质量门”。把官方 `skill-creator` 当作“创建、校验、打包”的权威执行流程。
+## 必读
 
-## 必读资料
+按任务读取：
 
-按任务需要读取这些资料：
+- `references/skill-builder-standards.md`：设计模式、正文长度、质量门、优化已有 skill 的标准。
+- `references/official-skill-creator-bridge.md`：官方 `skill-creator` 脚本能力矩阵、校验和打包流程。
+- `references/source-map.md` 与 `references/source-books/`：仅在追溯依据、处理争议或更新标准时读取。
 
-- `references/skill-builder-standards.md`：三份资料提炼出的执行标准。
-- `references/official-skill-creator-bridge.md`：如何调用官方 `skill-creator` 的桥接流程。
-- `references/source-map.md`：资料来源和维护说明。
-- `references/source-books/`：三本完整 Markdown 参考书。需要追溯依据、查原始例子、更新标准或处理争议规则时再搜索这些文件。
-
-创建、重构、校验或打包 skill 前，先加载当前环境已安装的官方 `skill-creator` skill，并遵循它的流程。不要在 skill 文件里写死任何用户本机绝对路径。
-
-如果当前环境没有 Anthropic 官方 `skill-creator`，先帮助用户从官方仓库安装：
-
-```text
-https://github.com/anthropics/skills/tree/main/skills/skill-creator
-```
-
-安装完成并确认 `skill-creator` 可用后，再继续创建、校验或打包目标 skill。
+创建、重构、校验或打包前，先加载当前环境中的官方 `skill-creator`。不要在 skill 文件中写死用户本机绝对路径。
 
 ## 工作流
 
-### 1. 判断请求类型
+### 1. 判断任务类型
 
-先识别用户意图：
-
-- 创建：把一个工作流、领域方法、工具用法或重复任务做成新 skill。
-- 改进：修改已有 `SKILL.md` 或配套资源。
-- 审查：检查触发、结构、安全性、可移植性和实际可用性。
+- 创建：把重复工作流、领域方法、工具用法做成新 skill。
+- 优化：改进已有 `SKILL.md`、触发描述、资源结构、脚本或质量门。
+- 审查：检查触发、结构、安全、可移植性和实际可用性。
 - 打包：校验并生成可分发 zip。
-- 基准测试：用正例和反例优化 `description` 的触发精度。
+- 基准测试：用正例和反例优化 `description`。
 
-只有在 skill 目标、目标用户或触发示例缺失且无法合理推断时，才问最多三个澄清问题。否则先做合理假设并继续推进。
+只有在目标、目标用户或触发示例缺失且无法合理推断时，才问最多三个澄清问题。
 
-### 2. 形成 skill 构建简报
+### 2. 先做构建 / 优化简报
 
-编辑文件前，先显式或隐式形成一份构建简报：
+编辑前形成简报：
 
-- skill 名称，使用 kebab-case。
-- 核心任务，也就是这个 skill 帮 agent 稳定完成什么。
-- 应该触发该 skill 的具体用户说法。
-- 不应该触发该 skill 的反例。
-- 采用的设计模式：检查清单型、多方案选择型、流水线型、集成型、多 Agent 协作型、蒸馏型，或明确组合。
-- 渐进式披露计划：哪些内容放在 frontmatter、`SKILL.md`、`references/`、`scripts/`、`assets/`。
-- 正文长度预算：推荐 `SKILL.md` 正文保持在 500-2000 字；超过 2000 字触发压缩/下沉审查，超过 3000 字触发拆分审查。
-- 安全和确认边界，尤其是不可逆操作、外部 API、凭据、删除或覆盖文件。
-- 校验方案和打包目标。
+- skill 名称与核心任务。
+- 触发正例与不触发反例。
+- 设计模式：Checklist、Options、Pipeline、Integration、Swarm、Distillation，或组合。
+- 是否需要拆分：正文推荐 500-2000 字；超过 2000 字压缩/下沉；超过 3000 字拆分审查。
+- 渐进式披露计划：`SKILL.md` / `references/` / `scripts/` / `assets/` 各放什么。
+- 安全边界：删除、覆盖、外部 API、发布、凭据。
+- 校验与打包计划。
 
-### 3. 检查并准备官方 skill-creator
+优化已有 skill 时，先读现有文件和被引用资源，判断它属于“压缩、拆分、补质量门、补资源、修触发、修工具链”哪一类；优先做最小有效修改。
 
-调用官方创建器前，先检查当前环境是否已有 Anthropic 官方 `skill-creator`：
+### 3. 与官方 skill-creator 配合
 
-- 如果已安装，直接加载并继续。
-- 如果未安装，按 `references/official-skill-creator-bridge.md` 的“缺失时安装”流程，从官方 GitHub 仓库安装。
-- 如果无法联网或无法确定 skill 安装目录，向用户说明阻塞点，并请求用户提供安装目录或官方 skill-creator 文件夹。
+按 `references/official-skill-creator-bridge.md` 建立脚本能力矩阵，逐个探测：
 
-不要使用非官方来源替代 Anthropic 官方 `skill-creator`，除非用户明确要求。
-
-### 4. 调用官方 skill-creator
-
-创建新 skill 时，先按 `references/official-skill-creator-bridge.md` 建立脚本能力矩阵，逐个探测 `init_skill.py`、`quick_validate.py`、`package_skill.py`。不要假设这些脚本都在同一个官方 `skill-creator` 目录里；官方仓库当前版本可能没有 `init_skill.py`，而系统内置版本可能没有 `package_skill.py`。
-
-如果能力矩阵中存在初始化脚本，使用实际脚本路径：
-
-```bash
-python3 {init_script_path} {skill_name} --path {output_directory}
+```text
+init      -> scripts/init_skill.py，如存在
+validate  -> scripts/quick_validate.py
+package   -> scripts/package_skill.py
 ```
 
-如果找不到初始化脚本，但需要创建新 skill，手动创建最小 `SKILL.md` 结构；随后仍用能力矩阵中的 `quick_validate.py` 校验。
+不要假设三个脚本在同一目录。官方仓库当前版本可能没有 `init_skill.py`；系统内置版本可能没有 `package_skill.py`。
 
-如果 skill 已存在，跳过初始化，先阅读现有文件。
+创建新 skill 时：有 `init_skill.py` 就用实际路径初始化；没有则手动创建最小 `SKILL.md` 结构。已有 skill 跳过初始化。
 
-删除不服务于最终 skill 的模板示例文件。只保留真正会被使用的 `scripts/`、`references/` 或 `assets/`。
+### 4. 编写或改进 skill
 
-### 5. 编写 Skill
+把 `SKILL.md` 写给后续 agent 执行，不写成人类说明书。
 
-把 `SKILL.md` 写给另一个 agent 使用，而不是写成给人浏览的说明书。
+- Frontmatter：`name` kebab-case，`description` 同时说明做什么和什么时候用。
+- `SKILL.md`：只放每次执行必需的核心流程、决策规则、质量门和安全边界。
+- `references/`：长标准、例子、rubric、schema、来源说明。
+- `scripts/`：确定性、重复性、易出错或外部 API 调用。
+- `assets/`：模板、样板工程、字体、图片等输出素材。
 
-正文使用命令式、流程式语言。frontmatter 使用第三人称描述，必须同时说明“做什么”和“什么时候用”。
+不要把 AI 已具备的基础常识写进 skill；只写本任务的标准、偏好、坑点、顺序和边界。
 
-按披露层级放置内容：
+### 5. 质量门
 
-- Frontmatter：简洁名称和触发明确的 `description`。
-- `SKILL.md`：核心流程、决策规则、资源链接。
-- `references/`：长标准、政策、schema、例子、rubric、来源说明。
-- `scripts/`：需要确定性或会反复重写的代码。
-- `assets/`：模板、字体、样板工程、图片或最终输出要使用的文件。
+完成前检查：
 
-不要把大段参考资料直接塞进 `SKILL.md`。能放入引用文件的内容优先放到 `references/`。
-
-### 6. 质量门
-
-完成前逐项检查：
-
-- 目录名和 frontmatter 的 `name` 一致，且均为 kebab-case。
-- `description` 具体、少于 1024 字符，并包含触发条件。
-- skill 教给 agent 的是非显然流程，而不是泛泛建议。
-- 工作流足够具体，执行时不需要重新追问显而易见的问题。
-- 配套资源有明确用途，并从 `SKILL.md` 中被引用。
-- 已考虑触发正例和不触发反例。
-- 长内容已移动到 `references/`，符合渐进式披露。
-- `SKILL.md` 正文短而精：推荐 500-2000 字。超过 2000 字时先压缩细节、删除 AI 已具备的基础常识、把长例子/rubric/背景材料移到 `references/`；超过 3000 字时必须触发拆分审查，优先按独立任务阶段拆成多个 skill。只有强耦合且每次执行都必需的核心流程、标准和偏好才留在正文。
-- 不硬编码 API key、token、secret、私有端点或用户本机路径。
+- 文件夹名与 frontmatter `name` 一致，且为 kebab-case。
+- `description` 具体、少于 1024 字符，能抓住正例并避开反例。
+- 正文推荐 500-2000 字；超过 2000 字已压缩/下沉，超过 3000 字已拆分审查。
+- 工作流足够具体，不是泛泛建议；关键输出有格式或验收标准。
+- 被引用资源存在且有用途；无用模板示例已删除。
+- 不硬编码 API key、token、secret、私有端点或用户本机绝对路径。
 - 不可逆或对外可见操作必须先确认。
-- skill 能与其他 skill 组合使用，不假设自己是唯一被加载的能力。
+- 能与其他 skill 组合使用，不假设自己是唯一能力。
 
-### 7. 校验和打包
+### 6. 校验、打包、汇报
 
-需要快速校验时，使用脚本能力矩阵中实际找到的校验脚本：
+用能力矩阵中的脚本校验：
 
 ```bash
 python3 {quick_validate_script_path} {skill_directory}
 ```
 
-用户要求可分发产物，或任务完成本身意味着交付 zip 时，使用脚本能力矩阵中实际找到的打包脚本：
+需要可分发产物时再打包：
 
 ```bash
 python3 {package_script_path} {skill_folder} {optional_output_directory}
 ```
 
-如果校验失败，先修复错误，再重新校验。不要在校验失败时声称 skill 已可用。
-
-### 8. 汇报结果
-
-最终简洁说明：
-
-- skill 目录。
-- 创建或修改的关键文件。
-- 校验和打包状态。
-- 仍然存在的假设或需要用户决定的事项。
-
-除非用户要求，不要直接贴出完整 skill 内容。
+校验失败先修复再汇报。最终只说明：修改的关键文件、设计决策、校验/打包状态、仍需用户决定的事项。除非用户要求，不贴完整 skill 内容。
